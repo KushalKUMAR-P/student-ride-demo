@@ -163,6 +163,31 @@ def debug_tables():
 
 init_db()
 
+@app.route("/dashboard")
+def dashboard():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+
+    posted_rides = conn.execute(
+        "SELECT * FROM rides WHERE rider_id = ?",
+        (session["user_id"],)
+    ).fetchall()
+
+    accepted_rides = conn.execute(
+        "SELECT * FROM rides WHERE driver_id = ?",
+        (session["user_id"],)
+    ).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "dashboard.html",
+        posted_rides=posted_rides,
+        accepted_rides=accepted_rides
+    )
+
 if __name__ == "__main__":
     app.run(debug=True)
 
