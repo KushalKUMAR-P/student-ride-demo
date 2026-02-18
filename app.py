@@ -5,6 +5,7 @@ load_dotenv()
 
 from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from psycopg2.extras import RealDictCursor
 from db import get_db_connection, init_db
 
 app = Flask(__name__)
@@ -12,9 +13,11 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 init_db()
 
+
 @app.route("/", methods=["GET"])
 def home():
     conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
     search_origin = request.args.get("origin")
     search_destination = request.args.get("destination")
@@ -34,11 +37,11 @@ def home():
     params = []
 
     if search_origin:
-        filters.append("rides.origin LIKE ?")
+        filters.append("rides.origin ILIKE %s")
         params.append(f"%{search_origin}%")
 
     if search_destination:
-        filters.append("rides.destination LIKE ?")
+        filters.append("rides.destination ILIKE %s")
         params.append(f"%{search_destination}%")
 
     if filters:
@@ -51,27 +54,25 @@ def home():
         order_clause = " ORDER BY rides.budget DESC"
 
     count_query = "SELECT COUNT(*) " + base_query
-    total_rides = conn.execute(count_query, params).fetchone()[0]
+    cur.execute(count_query, params)
+    total_rides = cur.fetchone()["count"]
 
     final_query = """
-        SELECT rides.*, 
+        SELECT rides.*,
                rider.username AS rider_name,
                driver.username AS driver_name
-    """ + base_query + order_clause + " LIMIT ? OFFSET ?"
+    """ + base_query + order_clause + " LIMIT %s OFFSET %s"
 
-    rides = conn.execute(
-        final_query,
-        params + [per_page, offset]
-    ).fetchall()
+    cur.execute(final_query, params + [per_page, offset])
+    rides = cur.fetchall()
 
-    total_users = conn.execute(
-        "SELECT COUNT(*) FROM users"
-    ).fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM users")
+    total_users = cur.fetchone()["count"]
 
-    completed_rides = conn.execute(
-        "SELECT COUNT(*) FROM rides WHERE status = 'Completed'"
-    ).fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM rides WHERE status = 'Completed'")
+    completed_rides = cur.fetchone()["count"]
 
+    cur.close()
     conn.close()
 
     total_pages = (total_rides + per_page - 1) // per_page
@@ -87,7 +88,6 @@ def home():
     )
 
 
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -95,16 +95,21 @@ def register():
         password = generate_password_hash(request.form["password"])
 
         conn = get_db_connection()
+        cur = conn.cursor()
+
         try:
-            conn.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
+            cur.execute(
+                "INSERT INTO users (username, password) VALUES (%s, %s)",
                 (username, password)
             )
             conn.commit()
         except:
+            conn.rollback()
+            cur.close()
             conn.close()
             return "Username already exists"
 
+        cur.close()
         conn.close()
         return redirect("/login")
 
@@ -118,10 +123,16 @@ def login():
         password = request.form["password"]
 
         conn = get_db_connection()
-        user = conn.execute(
-            "SELECT * FROM users WHERE username = ?",
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            "SELECT * FROM users WHERE username = %s",
             (username,)
-        ).fetchone()
+        )
+
+        user = cur.fetchone()
+
+        cur.close()
         conn.close()
 
         if user and check_password_hash(user["password"], password):
@@ -151,11 +162,15 @@ def create():
         budget = request.form["budget"]
 
         conn = get_db_connection()
-        conn.execute(
-            "INSERT INTO rides (origin, destination, budget, status, rider_id) VALUES (?, ?, ?, ?, ?)",
+        cur = conn.cursor()
+
+        cur.execute(
+            "INSERT INTO rides (origin, destination, budget, status, rider_id) VALUES (%s, %s, %s, %s, %s)",
             (origin, destination, budget, "Pending", session["user_id"])
         )
+
         conn.commit()
+        cur.close()
         conn.close()
 
         return redirect("/")
@@ -169,29 +184,19 @@ def accept_ride(ride_id):
         return redirect("/login")
 
     conn = get_db_connection()
-    conn.execute(
-        "UPDATE rides SET status = ?, driver_id = ? WHERE id = ?",
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE rides SET status = %s, driver_id = %s WHERE id = %s",
         ("Accepted", session["user_id"], ride_id)
     )
+
     conn.commit()
+    cur.close()
     conn.close()
 
     return redirect("/")
 
-
-
-# Temporary debug route
-@app.route("/debug_tables")
-def debug_tables():
-    conn = get_db_connection()
-    tables = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table';"
-    ).fetchall()
-    conn.close()
-    return str(tables)
-
-
-init_db()
 
 @app.route("/dashboard")
 def dashboard():
@@ -199,17 +204,21 @@ def dashboard():
         return redirect("/login")
 
     conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    posted_rides = conn.execute(
-        "SELECT * FROM rides WHERE rider_id = ?",
+    cur.execute(
+        "SELECT * FROM rides WHERE rider_id = %s",
         (session["user_id"],)
-    ).fetchall()
+    )
+    posted_rides = cur.fetchall()
 
-    accepted_rides = conn.execute(
-        "SELECT * FROM rides WHERE driver_id = ?",
+    cur.execute(
+        "SELECT * FROM rides WHERE driver_id = %s",
         (session["user_id"],)
-    ).fetchall()
+    )
+    accepted_rides = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     return render_template(
@@ -218,28 +227,34 @@ def dashboard():
         accepted_rides=accepted_rides
     )
 
+
 @app.route("/cancel/<int:ride_id>")
 def cancel_ride(ride_id):
     if "user_id" not in session:
         return redirect("/login")
 
     conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    ride = conn.execute(
-        "SELECT * FROM rides WHERE id = ?",
+    cur.execute(
+        "SELECT * FROM rides WHERE id = %s",
         (ride_id,)
-    ).fetchone()
+    )
+
+    ride = cur.fetchone()
 
     if ride and ride["rider_id"] == session["user_id"]:
-        conn.execute(
-            "DELETE FROM rides WHERE id = ?",
+        cur.execute(
+            "DELETE FROM rides WHERE id = %s",
             (ride_id,)
         )
         conn.commit()
 
+    cur.close()
     conn.close()
 
     return redirect("/")
+
 
 @app.route("/complete/<int:ride_id>")
 def complete_ride(ride_id):
@@ -247,30 +262,32 @@ def complete_ride(ride_id):
         return redirect("/login")
 
     conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    ride = conn.execute(
-        "SELECT * FROM rides WHERE id = ?",
+    cur.execute(
+        "SELECT * FROM rides WHERE id = %s",
         (ride_id,)
-    ).fetchone()
+    )
+
+    ride = cur.fetchone()
 
     if ride:
-        # Only rider or driver can complete
         if ride["rider_id"] == session["user_id"] or ride["driver_id"] == session["user_id"]:
-            conn.execute(
-                "UPDATE rides SET status = ? WHERE id = ?",
+            cur.execute(
+                "UPDATE rides SET status = %s WHERE id = %s",
                 ("Completed", ride_id)
             )
             conn.commit()
 
+    cur.close()
     conn.close()
 
     return redirect("/")
 
+
 if __name__ == "__main__":
-    init_db()
     app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", 5000)),
         debug=os.getenv("FLASK_ENV") == "development"
     )
-
