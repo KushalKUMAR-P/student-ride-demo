@@ -48,11 +48,16 @@ def init_db():
 @app.route("/")
 def home():
     conn = get_db_connection()
+
     rides = conn.execute("""
-        SELECT rides.*, users.username AS rider_name
+        SELECT rides.*, 
+               rider.username AS rider_name,
+               driver.username AS driver_name
         FROM rides
-        JOIN users ON rides.rider_id = users.id
+        JOIN users AS rider ON rides.rider_id = rider.id
+        LEFT JOIN users AS driver ON rides.driver_id = driver.id
     """).fetchall()
+
     conn.close()
 
     return render_template("index.html", rides=rides)
@@ -187,6 +192,29 @@ def dashboard():
         posted_rides=posted_rides,
         accepted_rides=accepted_rides
     )
+
+@app.route("/cancel/<int:ride_id>")
+def cancel_ride(ride_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+
+    ride = conn.execute(
+        "SELECT * FROM rides WHERE id = ?",
+        (ride_id,)
+    ).fetchone()
+
+    if ride and ride["rider_id"] == session["user_id"]:
+        conn.execute(
+            "DELETE FROM rides WHERE id = ?",
+            (ride_id,)
+        )
+        conn.commit()
+
+    conn.close()
+
+    return redirect("/")
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -134,9 +134,18 @@
               Accept
             </a>
             {% endif %}
+
+            {% if session.user_id and session.user_id == ride.rider_id %}
+            <a href="/cancel/{{ ride.id }}" class="btn btn-danger btn-sm ms-2">
+              Cancel
+            </a>
+            {% endif %}
+
             {% else %}
             <span class="badge bg-success">Accepted</span>
             {% endif %}
+
+
 
           </div>
         </div>
