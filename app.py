@@ -216,6 +216,31 @@ def cancel_ride(ride_id):
 
     return redirect("/")
 
+@app.route("/complete/<int:ride_id>")
+def complete_ride(ride_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+
+    ride = conn.execute(
+        "SELECT * FROM rides WHERE id = ?",
+        (ride_id,)
+    ).fetchone()
+
+    if ride:
+        # Only rider or driver can complete
+        if ride["rider_id"] == session["user_id"] or ride["driver_id"] == session["user_id"]:
+            conn.execute(
+                "UPDATE rides SET status = ? WHERE id = ?",
+                ("Completed", ride_id)
+            )
+            conn.commit()
+
+    conn.close()
+
+    return redirect("/")
+
 if __name__ == "__main__":
     app.run(debug=True)
 

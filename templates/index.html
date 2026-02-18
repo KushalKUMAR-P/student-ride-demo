@@ -141,9 +141,22 @@
             </a>
             {% endif %}
 
-            {% else %}
+            {% elif ride.status == "Accepted" %}
             <span class="badge bg-success">Accepted</span>
+            <p class="mt-2 small text-muted">
+              Accepted by {{ ride.driver_name }}
+            </p>
+
+            {% if session.user_id == ride.rider_id or session.user_id == ride.driver_id %}
+            <a href="/complete/{{ ride.id }}" class="btn btn-dark btn-sm mt-2">
+              Mark as Completed
+            </a>
             {% endif %}
+
+            {% else %}
+            <span class="badge bg-secondary">Completed</span>
+            {% endif %}
+
 
 
 
