@@ -26,11 +26,16 @@
 
       <div>
         {% if session.username %}
-        <a href="/dashboard" class="text-white me-3 text-decoration-none">
+        <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">
+          Dashboard
+        </a>
+        <span class="text-white me-3">
           {{ session.username }}
+        </span>
+        <a href="/logout" class="btn btn-light btn-sm">
+          Logout
         </a>
 
-        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
         {% else %}
         <a href="/login" class="btn btn-outline-light btn-sm me-2">Login</a>
         <a href="/register" class="btn btn-light btn-sm">Register</a>
