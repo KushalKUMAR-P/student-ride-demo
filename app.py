@@ -45,22 +45,43 @@ def init_db():
     conn.close()
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
     conn = get_db_connection()
 
-    rides = conn.execute("""
+    search_origin = request.args.get("origin")
+    search_destination = request.args.get("destination")
+
+    query = """
         SELECT rides.*, 
                rider.username AS rider_name,
                driver.username AS driver_name
         FROM rides
         JOIN users AS rider ON rides.rider_id = rider.id
         LEFT JOIN users AS driver ON rides.driver_id = driver.id
-    """).fetchall()
+    """
 
+    filters = []
+    params = []
+
+    if search_origin:
+        filters.append("rides.origin LIKE ?")
+        params.append(f"%{search_origin}%")
+
+    if search_destination:
+        filters.append("rides.destination LIKE ?")
+        params.append(f"%{search_destination}%")
+
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+
+    rides = conn.execute(query, params).fetchall()
     conn.close()
 
-    return render_template("index.html", rides=rides)
+    return render_template(
+        "index.html",
+        rides=rides
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
