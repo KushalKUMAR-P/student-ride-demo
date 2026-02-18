@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db_connection, init_db
@@ -260,5 +265,10 @@ def complete_ride(ride_id):
     return redirect("/")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    init_db()
+    app.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),
+        debug=os.getenv("FLASK_ENV") == "development"
+    )
 
