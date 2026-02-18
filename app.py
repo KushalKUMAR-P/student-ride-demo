@@ -8,10 +8,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db_connection, init_db
 
 app = Flask(__name__)
-app.secret_key = "devsecretkey"
+app.secret_key = os.getenv("SECRET_KEY")
 
-with app.app_context():
-    init_db()
+init_db()
 
 @app.route("/", methods=["GET"])
 def home():
