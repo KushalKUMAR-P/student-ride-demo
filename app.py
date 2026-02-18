@@ -82,11 +82,9 @@ def home():
     elif sort_order == "high":
         order_clause = " ORDER BY rides.budget DESC"
 
-    # Count total rides
     count_query = "SELECT COUNT(*) " + base_query
     total_rides = conn.execute(count_query, params).fetchone()[0]
 
-    # Fetch paginated rides
     final_query = """
         SELECT rides.*, 
                rider.username AS rider_name,
@@ -98,6 +96,14 @@ def home():
         params + [per_page, offset]
     ).fetchall()
 
+    total_users = conn.execute(
+        "SELECT COUNT(*) FROM users"
+    ).fetchone()[0]
+
+    completed_rides = conn.execute(
+        "SELECT COUNT(*) FROM rides WHERE status = 'Completed'"
+    ).fetchone()[0]
+
     conn.close()
 
     total_pages = (total_rides + per_page - 1) // per_page
@@ -107,8 +113,12 @@ def home():
         rides=rides,
         total_rides=total_rides,
         page=page,
-        total_pages=total_pages
+        total_pages=total_pages,
+        total_users=total_users,
+        completed_rides=completed_rides
     )
+
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
