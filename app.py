@@ -10,6 +10,9 @@ from db import get_db_connection, init_db
 app = Flask(__name__)
 app.secret_key = "devsecretkey"
 
+with app.app_context():
+    init_db()
+
 @app.route("/", methods=["GET"])
 def home():
     conn = get_db_connection()
