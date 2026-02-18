@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Student Ride Marketplace</title>
+    <title>RideLess - Student Ride Sharing</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
   <div class="container">
-    <a class="navbar-brand" href="/">🚗 Student Ride</a>
+    <a class="navbar-brand fw-bold" href="/">RideLess</a>
     
     <div>
       {% if session.username %}
         <span class="text-white me-3">
-          Welcome, {{ session.username }}
+          {{ session.username }}
         </span>
         <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
       {% else %}
@@ -24,56 +25,80 @@
   </div>
 </nav>
 
-<div class="container mt-5">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Available Rides</h2>
-        {% if session.user_id %}
-            <a href="/create" class="btn btn-primary">+ Post Ride</a>
-        {% endif %}
-    </div>
-
-    {% if rides %}
-        <div class="row">
-        {% for ride in rides %}
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-
-                        <h5 class="card-title">
-                            {{ ride.origin }} → {{ ride.destination }}
-                        </h5>
-
-                        <p class="mb-1">
-                            Budget: <strong>${{ ride.budget }}</strong>
-                        </p>
-
-                        <p class="mb-2 text-muted">
-                            Posted by: {{ ride.rider_name }}
-                        </p>
-
-                        {% if ride.status == "Pending" %}
-                            <span class="badge bg-warning text-dark">Pending</span>
-
-                            {% if session.user_id and session.user_id != ride.rider_id %}
-                                <a href="/accept/{{ ride.id }}" 
-                                   class="btn btn-success btn-sm ms-2">
-                                   Accept Ride
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <span class="badge bg-success">Accepted</span>
-                        {% endif %}
-
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-        </div>
+<!-- HERO SECTION -->
+<section class="bg-dark text-white text-center py-5">
+  <div class="container">
+    <h1 class="display-5 fw-bold">Affordable Student Ride Sharing</h1>
+    <p class="lead mt-3">
+      Post your budget. Find a ride. Travel smarter.
+    </p>
+    {% if session.user_id %}
+      <a href="/create" class="btn btn-primary btn-lg mt-3">
+        Post a Ride
+      </a>
     {% else %}
-        <p>No rides available yet.</p>
+      <a href="/register" class="btn btn-primary btn-lg mt-3">
+        Get Started
+      </a>
     {% endif %}
+  </div>
+</section>
+
+<!-- RIDES SECTION -->
+<div class="container mt-5 mb-5">
+  <h3 class="mb-4 text-center">Available Rides</h3>
+
+  {% if rides %}
+    <div class="row">
+      {% for ride in rides %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+          <div class="card-body">
+
+            <h5 class="fw-bold">
+              {{ ride.origin }} → {{ ride.destination }}
+            </h5>
+
+            <p class="text-muted small mb-2">
+              Posted by {{ ride.rider_name }}
+            </p>
+
+            <p class="mb-3">
+              Budget:
+              <span class="fw-bold text-success">
+                ${{ ride.budget }}
+              </span>
+            </p>
+
+            {% if ride.status == "Pending" %}
+              <span class="badge bg-warning text-dark">Pending</span>
+
+              {% if session.user_id and session.user_id != ride.rider_id %}
+                <a href="/accept/{{ ride.id }}" 
+                   class="btn btn-success btn-sm ms-2">
+                   Accept
+                </a>
+              {% endif %}
+            {% else %}
+              <span class="badge bg-success">Accepted</span>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted">No rides available yet.</p>
+  {% endif %}
 </div>
+
+<!-- FOOTER -->
+<footer class="bg-dark text-white text-center py-3">
+  <small>
+    Built by kushal • 2026 • MVP Demo
+  </small>
+</footer>
 
 </body>
 </html>
