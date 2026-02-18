@@ -191,6 +191,31 @@
     <p class="text-center text-muted">No rides available yet.</p>
     {% endif %}
 
+    {% if total_pages > 1 %}
+    <nav>
+      <ul class="pagination justify-content-center mt-4">
+
+        {% if page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+        </li>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+          <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page < total_pages %} <li class="page-item">
+          <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+          </li>
+          {% endif %}
+
+      </ul>
+    </nav>
+    {% endif %}
+
   </div>
 
   <!-- FOOTER -->

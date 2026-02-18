@@ -51,11 +51,12 @@ def home():
     search_origin = request.args.get("origin")
     search_destination = request.args.get("destination")
     sort_order = request.args.get("sort")
+    page = request.args.get("page", 1, type=int)
 
-    query = """
-        SELECT rides.*, 
-               rider.username AS rider_name,
-               driver.username AS driver_name
+    per_page = 6
+    offset = (page - 1) * per_page
+
+    base_query = """
         FROM rides
         JOIN users AS rider ON rides.rider_id = rider.id
         LEFT JOIN users AS driver ON rides.driver_id = driver.id
@@ -73,19 +74,41 @@ def home():
         params.append(f"%{search_destination}%")
 
     if filters:
-        query += " WHERE " + " AND ".join(filters)
+        base_query += " WHERE " + " AND ".join(filters)
 
+    order_clause = ""
     if sort_order == "low":
-        query += " ORDER BY rides.budget ASC"
+        order_clause = " ORDER BY rides.budget ASC"
     elif sort_order == "high":
-        query += " ORDER BY rides.budget DESC"
+        order_clause = " ORDER BY rides.budget DESC"
 
-    rides = conn.execute(query, params).fetchall()
+    # Count total rides
+    count_query = "SELECT COUNT(*) " + base_query
+    total_rides = conn.execute(count_query, params).fetchone()[0]
+
+    # Fetch paginated rides
+    final_query = """
+        SELECT rides.*, 
+               rider.username AS rider_name,
+               driver.username AS driver_name
+    """ + base_query + order_clause + " LIMIT ? OFFSET ?"
+
+    rides = conn.execute(
+        final_query,
+        params + [per_page, offset]
+    ).fetchall()
+
     conn.close()
-    total_rides = len(rides)
 
-    return render_template("index.html", rides=rides)
+    total_pages = (total_rides + per_page - 1) // per_page
 
+    return render_template(
+        "index.html",
+        rides=rides,
+        total_rides=total_rides,
+        page=page,
+        total_pages=total_pages
+    )
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
