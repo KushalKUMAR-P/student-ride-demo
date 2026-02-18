@@ -44,13 +44,13 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 @app.route("/", methods=["GET"])
 def home():
     conn = get_db_connection()
 
     search_origin = request.args.get("origin")
     search_destination = request.args.get("destination")
+    sort_order = request.args.get("sort")
 
     query = """
         SELECT rides.*, 
@@ -75,13 +75,16 @@ def home():
     if filters:
         query += " WHERE " + " AND ".join(filters)
 
+    if sort_order == "low":
+        query += " ORDER BY rides.budget ASC"
+    elif sort_order == "high":
+        query += " ORDER BY rides.budget DESC"
+
     rides = conn.execute(query, params).fetchall()
     conn.close()
+    total_rides = len(rides)
 
-    return render_template(
-        "index.html",
-        rides=rides
-    )
+    return render_template("index.html", rides=rides)
 
 
 @app.route("/register", methods=["GET", "POST"])
