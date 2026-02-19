@@ -1,3 +1,7 @@
+@app.route("/health")
+def health():
+    return "OK"
+
 import os
 from dotenv import load_dotenv
 
@@ -7,11 +11,11 @@ from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from psycopg2.extras import RealDictCursor
 from db import get_db_connection, init_db
+from models.user_model import create_user, get_user_by_email
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
-
-init_db()
 
 
 @app.route("/", methods=["GET"])
@@ -92,25 +96,19 @@ def home():
 def register():
     if request.method == "POST":
         username = request.form["username"]
+        email = request.form["email"]
         password = generate_password_hash(request.form["password"])
 
-        conn = get_db_connection()
-        cur = conn.cursor()
+        # Enforce .edu restriction
+        if not email.endswith(".edu"):
+            return "Only .edu emails allowed"
 
-        try:
-            cur.execute(
-                "INSERT INTO users (username, password) VALUES (%s, %s)",
-                (username, password)
-            )
-            conn.commit()
-        except:
-            conn.rollback()
-            cur.close()
-            conn.close()
-            return "Username already exists"
+        existing_user = get_user_by_email(email)
+        if existing_user:
+            return "Email already registered"
 
-        cur.close()
-        conn.close()
+        create_user(username, email, password)
+
         return redirect("/login")
 
     return render_template("register.html")
@@ -119,25 +117,15 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
+        email = request.form["email"]
         password = request.form["password"]
 
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        cur.execute(
-            "SELECT * FROM users WHERE username = %s",
-            (username,)
-        )
-
-        user = cur.fetchone()
-
-        cur.close()
-        conn.close()
+        user = get_user_by_email(email)
 
         if user and check_password_hash(user["password"], password):
             session["user_id"] = user["id"]
             session["username"] = user["username"]
+            session["user_verified"] = user["is_verified"]
             return redirect("/")
         else:
             return "Invalid credentials"
@@ -286,6 +274,7 @@ def complete_ride(ride_id):
 
 
 if __name__ == "__main__":
+    init_db()
     app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", 5000)),
