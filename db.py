@@ -44,6 +44,17 @@ def init_db():
         )
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS ratings (
+        id SERIAL PRIMARY KEY,
+        ride_id INTEGER REFERENCES rides(id) ON DELETE CASCADE,
+        rider_id INTEGER REFERENCES users(id),
+        driver_id INTEGER REFERENCES users(id),
+        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+        created_at TIMESTAMP DEFAULT NOW()
+    )
+""")
+
     conn.commit()
     cur.close()
     conn.close()

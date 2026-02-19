@@ -81,6 +81,24 @@ def home():
     cur.execute(final_query, params + [per_page, offset])
     rides = cur.fetchall()
 
+    # ⭐ STEP 4: Add Driver Rating Data
+    for ride in rides:
+        if ride["driver_id"]:
+            cur.execute("""
+                SELECT AVG(rating) AS avg_rating, COUNT(*) AS total
+                FROM ratings
+                WHERE driver_id = %s
+            """, (ride["driver_id"],))
+
+            result = cur.fetchone()
+
+            ride["avg_rating"] = round(result["avg_rating"], 1) if result["avg_rating"] else None
+            ride["total_ratings"] = result["total"]
+        else:
+            ride["avg_rating"] = None
+            ride["total_ratings"] = 0
+
+    # Metrics
     cur.execute("SELECT COUNT(*) FROM users")
     total_users = cur.fetchone()["count"]
 
@@ -101,7 +119,6 @@ def home():
         total_users=total_users,
         completed_rides=completed_rides
     )
-
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -265,6 +282,40 @@ def dashboard():
         accepted_rides=accepted_rides
     )
 
+
+@app.route("/rate/<int:ride_id>", methods=["POST"])
+def rate_driver(ride_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    rating_value = int(request.form["rating"])
+
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute(
+        "SELECT * FROM rides WHERE id = %s",
+        (ride_id,)
+    )
+    ride = cur.fetchone()
+
+    if not ride:
+        return "Ride not found"
+
+    # Only rider can rate after completion
+    if ride["rider_id"] != session["user_id"] or ride["status"] != "Completed":
+        return "Not allowed"
+
+    cur.execute("""
+        INSERT INTO ratings (ride_id, rider_id, driver_id, rating)
+        VALUES (%s, %s, %s, %s)
+    """, (ride_id, session["user_id"], ride["driver_id"], rating_value))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return redirect("/dashboard")
 
 if __name__ == "__main__":
     app.run(

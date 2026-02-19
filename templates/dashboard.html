@@ -17,7 +17,9 @@
 
   <h2 class="mb-4">My Dashboard</h2>
 
-  <!-- POSTED RIDES -->
+  <!-- ===================== -->
+  <!-- RIDES I POSTED (RIDER) -->
+  <!-- ===================== -->
   <h4 class="mb-3">Rides I Posted</h4>
 
   {% if posted_rides %}
@@ -26,20 +28,45 @@
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
+
               <h5 class="fw-bold">
                 {{ ride.origin }} → {{ ride.destination }}
               </h5>
+
               <p class="mb-2">
                 Budget: <span class="fw-bold text-success">${{ ride.budget }}</span>
               </p>
+
+              <!-- STATUS BADGES -->
               <p>
                 Status:
                 {% if ride.status == "Pending" %}
                   <span class="badge bg-warning text-dark">Pending</span>
-                {% else %}
+                {% elif ride.status == "Accepted" %}
                   <span class="badge bg-success">Accepted</span>
+                {% elif ride.status == "Completed" %}
+                  <span class="badge bg-secondary">Completed</span>
                 {% endif %}
               </p>
+
+              <!-- RATE DRIVER (ONLY AFTER COMPLETED) -->
+              {% if ride.status == "Completed" and session.user_role == "rider" %}
+                <form method="POST" action="/rate/{{ ride.id }}">
+                  <label class="form-label mt-2">Rate Driver</label>
+                  <select name="rating" class="form-select" required>
+                    <option value="">Select Rating</option>
+                    <option value="5">⭐⭐⭐⭐⭐</option>
+                    <option value="4">⭐⭐⭐⭐</option>
+                    <option value="3">⭐⭐⭐</option>
+                    <option value="2">⭐⭐</option>
+                    <option value="1">⭐</option>
+                  </select>
+                  <button class="btn btn-sm btn-primary mt-2 w-100">
+                    Submit Rating
+                  </button>
+                </form>
+              {% endif %}
+
             </div>
           </div>
         </div>
@@ -49,7 +76,10 @@
     <p class="text-muted mb-5">You haven’t posted any rides yet.</p>
   {% endif %}
 
-  <!-- ACCEPTED RIDES -->
+
+  <!-- ===================== -->
+  <!-- RIDES I ACCEPTED (DRIVER) -->
+  <!-- ===================== -->
   <h4 class="mb-3">Rides I Accepted</h4>
 
   {% if accepted_rides %}
@@ -58,13 +88,21 @@
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
+
               <h5 class="fw-bold">
                 {{ ride.origin }} → {{ ride.destination }}
               </h5>
+
               <p class="mb-2">
                 Budget: <span class="fw-bold text-success">${{ ride.budget }}</span>
               </p>
-              <span class="badge bg-success">Accepted</span>
+
+              {% if ride.status == "Accepted" %}
+                <span class="badge bg-success">Accepted</span>
+              {% elif ride.status == "Completed" %}
+                <span class="badge bg-secondary">Completed</span>
+              {% endif %}
+
             </div>
           </div>
         </div>
