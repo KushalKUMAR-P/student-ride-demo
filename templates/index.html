@@ -176,12 +176,19 @@
             </p>
             <h4 class="fw-bold">${{ ride.budget }}</h4>
 
+            {% if ride.avg_rating %}
+            <p class="small text-warning mt-2">
+              ⭐ {{ ride.avg_rating }} ({{ ride.total_ratings }} ratings)
+            </p>
+            {% endif %}
+
+
             {% if ride.status == "Pending" %}
-              <span class="badge bg-warning text-dark">Pending</span>
+            <span class="badge bg-warning text-dark">Pending</span>
             {% elif ride.status == "Accepted" %}
-              <span class="badge bg-success">Accepted</span>
+            <span class="badge bg-success">Accepted</span>
             {% else %}
-              <span class="badge bg-secondary">Completed</span>
+            <span class="badge bg-secondary">Completed</span>
             {% endif %}
           </div>
         </div>
@@ -212,4 +219,5 @@
   </footer>
 
 </body>
+
 </html>
