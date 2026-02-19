@@ -2,88 +2,113 @@
 <html>
 
 <head>
-  <title>RideLess - Student Ride Sharing</title>
+  <title>RideLess - Student Ride Marketplace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
-    .card {
-      border-radius: 12px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    body {
+      background-color: #0f172a;
+      color: #f1f5f9;
     }
 
-    .card:hover {
+    .hero {
+      padding: 100px 0;
+      text-align: center;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      border: none;
+    }
+
+    .stats-box {
+      background-color: #1e293b;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      transition: 0.3s;
+    }
+
+    .stats-box:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      background-color: #334155;
+    }
+
+    .ride-card {
+      background-color: #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: 0.3s;
+    }
+
+    .ride-card:hover {
+      background-color: #334155;
+    }
+
+    footer {
+      background-color: #020617;
+      padding: 20px;
+      text-align: center;
+      margin-top: 80px;
+      color: #94a3b8;
     }
   </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+  <!-- HERO -->
+  <section class="hero">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="/">RideLess</a>
-
-      <div>
-        {% if session.username %}
-        <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">
-          Dashboard
-        </a>
-        <span class="text-white me-3">
-          {{ session.username }}
-        </span>
-        <a href="/logout" class="btn btn-light btn-sm">
-          Logout
-        </a>
-        {% else %}
-        <a href="/login" class="btn btn-outline-light btn-sm me-2">Login</a>
-        <a href="/register" class="btn btn-light btn-sm">Register</a>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <!-- HERO SECTION -->
-  <section style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);" class="text-white text-center py-5">
-    <div class="container">
-      <h1 class="display-4 fw-bold mb-3">
-        Travel Smarter. Spend Less.
+      <h1 class="display-4 fw-bold mb-4">
+        A Budget-Based Ride Marketplace for Students
       </h1>
       <p class="lead mb-4">
-        A peer-to-peer ride marketplace built for students.
-        Set your budget. Match instantly.
+        You set the price. Drivers choose the ride.
+        Built exclusively for verified .edu users.
       </p>
 
       {% if session.user_id %}
-      <a href="/create" class="btn btn-light btn-lg px-4">
+      <a href="/create" class="btn btn-primary btn-lg px-4">
         Post a Ride
       </a>
       {% else %}
-      <a href="/register" class="btn btn-light btn-lg px-4">
+      <a href="/register" class="btn btn-primary btn-lg px-4">
         Get Started
       </a>
       {% endif %}
     </div>
   </section>
 
-  <!-- ANALYTICS STRIP -->
-  <section class="bg-light py-4 border-bottom">
+
+  <!-- STATS -->
+  <section class="py-5">
     <div class="container">
       <div class="row text-center">
 
-        <div class="col-md-4">
-          <h4 class="fw-bold">{{ total_users }}</h4>
-          <p class="text-muted mb-0">Registered Users</p>
+        <div class="col-md-4 mb-4">
+          <div class="stats-box">
+            <h2 class="fw-bold">{{ total_users }}</h2>
+            <p>Registered Students</p>
+          </div>
         </div>
 
-        <div class="col-md-4">
-          <h4 class="fw-bold">{{ total_rides }}</h4>
-          <p class="text-muted mb-0">Total Ride Requests</p>
+        <div class="col-md-4 mb-4">
+          <div class="stats-box">
+            <h2 class="fw-bold">{{ total_rides }}</h2>
+            <p>Active Ride Requests</p>
+          </div>
         </div>
 
-        <div class="col-md-4">
-          <h4 class="fw-bold">{{ completed_rides }}</h4>
-          <p class="text-muted mb-0">Completed Rides</p>
+        <div class="col-md-4 mb-4">
+          <div class="stats-box">
+            <h2 class="fw-bold">{{ completed_rides }}</h2>
+            <p>Completed Rides</p>
+          </div>
         </div>
 
       </div>
@@ -92,177 +117,99 @@
 
 
   <!-- HOW IT WORKS -->
-  <section class="py-5 bg-white">
-    <div class="container text-center" style="max-width: 1000px;">
-      <h2 class="fw-bold mb-5">How It Works</h2>
+  <section class="py-5 bg-dark">
+    <div class="container text-center">
+      <h2 class="mb-5 fw-bold">How RideLess Works</h2>
 
       <div class="row">
         <div class="col-md-4 mb-4">
-          <h4 class="fw-bold">1. Post Your Ride</h4>
-          <p class="text-muted">
-            Enter your route and budget. Let drivers know what you're willing to pay.
+          <h4>1️⃣ Post Your Ride</h4>
+          <p class="text-secondary">
+            Enter origin, destination, and your budget.
           </p>
         </div>
 
         <div class="col-md-4 mb-4">
-          <h4 class="fw-bold">2. Match Instantly</h4>
-          <p class="text-muted">
-            Drivers browse ride requests and accept rides that fit their route.
+          <h4>2️⃣ Drivers Accept</h4>
+          <p class="text-secondary">
+            Drivers browse and accept rides that fit.
           </p>
         </div>
 
         <div class="col-md-4 mb-4">
-          <h4 class="fw-bold">3. Travel Smart</h4>
-          <p class="text-muted">
-            Save money and connect with fellow students.
+          <h4>3️⃣ Travel & Pay</h4>
+          <p class="text-secondary">
+            Meet up and pay via Zelle or cash.
           </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- RIDES SECTION -->
-  <div class="container mt-5 mb-5">
 
-    <!-- SEARCH FORM -->
-    <form method="GET" class="row g-2 mb-4 justify-content-center">
+  <!-- WHY DIFFERENT -->
+  <section class="py-5">
+    <div class="container text-center">
+      <h2 class="fw-bold mb-4">Why Not Uber?</h2>
+      <p class="lead text-secondary">
+        RideLess flips the model.
+        Instead of algorithmic pricing, students decide the price.
+        No surge. No hidden fees. Pure peer-to-peer rides.
+      </p>
+    </div>
+  </section>
 
-      <div class="col-md-3">
-        <input type="text" name="origin" class="form-control" placeholder="Origin"
-          value="{{ request.args.get('origin', '') }}">
 
-      </div>
+  <!-- AVAILABLE RIDES -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="fw-bold text-center mb-5">Available Rides</h2>
 
-      <div class="col-md-3">
-        <input type="text" name="destination" class="form-control" placeholder="Destination"
-          value="{{ request.args.get('destination', '') }}">
-
-      </div>
-
-      <div class="col-md-2">
-        <select name="sort" class="form-select">
-          <option value="">Sort</option>
-
-          <option value="low" {% if request.args.get('sort')=='low' %}selected{% endif %}>
-            Budget ↑
-          </option>
-
-          <option value="high" {% if request.args.get('sort')=='high' %}selected{% endif %}>
-            Budget ↓
-          </option>
-        </select>
-
-      </div>
-
-      <div class="col-md-auto">
-        <button type="submit" class="btn btn-dark px-4">
-          Search
-        </button>
-      </div>
-
-    </form>
-
-    <p class="text-center text-muted">
-      {{ total_rides }} rides available
-    </p>
-
-    <h3 class="mb-4 text-center">Available Rides</h3>
-
-    {% if rides %}
-    <div class="row justify-content-center">
-      {% for ride in rides %}
-      <div class="col-sm-12 col-md-6 col-lg-4 d-flex mb-4">
-        <div class="card shadow-sm border-0 w-100">
-          <div class="card-body">
-
-            <h5 class="fw-bold mb-2">
-              {{ ride.origin }} → {{ ride.destination }}
-            </h5>
-
-            <p class="text-muted small mb-2">
+      {% if rides %}
+      <div class="row">
+        {% for ride in rides %}
+        <div class="col-md-4">
+          <div class="ride-card">
+            <h5>{{ ride.origin }} → {{ ride.destination }}</h5>
+            <p class="text-secondary small">
               Posted by {{ ride.rider_name }}
             </p>
-
-            <p class="fs-5 fw-bold text-success mb-3">
-              ${{ ride.budget }}
-            </p>
+            <h4 class="fw-bold">${{ ride.budget }}</h4>
 
             {% if ride.status == "Pending" %}
-            <span class="badge bg-warning text-dark">Pending</span>
-
-            {% if session.user_id and session.user_id != ride.rider_id %}
-            <a href="/accept/{{ ride.id }}" class="btn btn-success btn-sm ms-2">
-              Accept
-            </a>
-            {% endif %}
-
-            {% if session.user_id and session.user_id == ride.rider_id %}
-            <a href="/cancel/{{ ride.id }}" class="btn btn-danger btn-sm ms-2">
-              Cancel
-            </a>
-            {% endif %}
-
+              <span class="badge bg-warning text-dark">Pending</span>
             {% elif ride.status == "Accepted" %}
-            <span class="badge bg-success">Accepted</span>
-            <p class="mt-2 small text-muted">
-              Accepted by {{ ride.driver_name }}
-            </p>
-
-            {% if session.user_id == ride.rider_id or session.user_id == ride.driver_id %}
-            <a href="/complete/{{ ride.id }}" class="btn btn-dark btn-sm mt-2">
-              Mark as Completed
-            </a>
-            {% endif %}
-
+              <span class="badge bg-success">Accepted</span>
             {% else %}
-            <span class="badge bg-secondary">Completed</span>
+              <span class="badge bg-secondary">Completed</span>
             {% endif %}
-
           </div>
         </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-center text-muted">No rides available yet.</p>
-    {% endif %}
-
-    {% if total_pages > 1 %}
-    <nav>
-      <ul class="pagination justify-content-center mt-4">
-
-        {% if page > 1 %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
-        </li>
-        {% endif %}
-
-        {% for p in range(1, total_pages + 1) %}
-        <li class="page-item {% if p == page %}active{% endif %}">
-          <a class="page-link"
-            href="?page={{ p }}&origin={{ request.args.get('origin', '') }}&destination={{ request.args.get('destination', '') }}&sort={{ request.args.get('sort', '') }}"
-            </a>
-        </li>
         {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-center text-secondary">No rides available yet.</p>
+      {% endif %}
+    </div>
+  </section>
 
-        {% if page < total_pages %} <li class="page-item">
-          <a class="page-link" href="?page={{ page + 1 }}">Next</a>
-          </li>
-          {% endif %}
 
-      </ul>
-    </nav>
-    {% endif %}
+  <!-- DONATION -->
+  <section class="py-5 bg-dark text-center">
+    <div class="container">
+      <h3 class="fw-bold mb-3">Support RideLess</h3>
+      <p class="text-secondary">
+        RideLess is built to keep transportation affordable for students.
+        Support development via Zelle or direct donation.
+      </p>
+    </div>
+  </section>
 
-  </div>
 
   <!-- FOOTER -->
-  <footer class="bg-dark text-white text-center py-3">
-    <small>
-      Built by kushal • 2026 • MVP Demo
-    </small>
+  <footer>
+    Built by YourName • 2026 • MVP Demo
   </footer>
 
 </body>
-
 </html>
