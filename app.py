@@ -1,7 +1,3 @@
-@app.route("/health")
-def health():
-    return "OK"
-
 import os
 from dotenv import load_dotenv
 
@@ -10,12 +6,27 @@ load_dotenv()
 from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from psycopg2.extras import RealDictCursor
+
 from db import get_db_connection, init_db
 from models.user_model import create_user, get_user_by_email
 
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+
+
+# ✅ Initialize DB safely on startup (works for Gunicorn)
+with app.app_context():
+    try:
+        init_db()
+        print("Database initialized successfully.")
+    except Exception as e:
+        print("Database initialization error:", e)
+
+
+@app.route("/health")
+def health():
+    return "OK"
 
 
 @app.route("/", methods=["GET"])
@@ -99,7 +110,6 @@ def register():
         email = request.form["email"]
         password = generate_password_hash(request.form["password"])
 
-        # Enforce .edu restriction
         if not email.endswith(".edu"):
             return "Only .edu emails allowed"
 
@@ -108,7 +118,6 @@ def register():
             return "Email already registered"
 
         create_user(username, email, password)
-
         return redirect("/login")
 
     return render_template("register.html")
@@ -141,7 +150,7 @@ def logout():
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    if "user_id" not in session:
+    if "user_id" not in session or not session.get("user_verified"):
         return redirect("/login")
 
     if request.method == "POST":
@@ -153,8 +162,11 @@ def create():
         cur = conn.cursor()
 
         cur.execute(
-            "INSERT INTO rides (origin, destination, budget, status, rider_id) VALUES (%s, %s, %s, %s, %s)",
-            (origin, destination, budget, "Pending", session["user_id"])
+            """
+            INSERT INTO rides (origin, destination, budget, rider_id)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (origin, destination, budget, session["user_id"])
         )
 
         conn.commit()
@@ -175,11 +187,49 @@ def accept_ride(ride_id):
     cur = conn.cursor()
 
     cur.execute(
-        "UPDATE rides SET status = %s, driver_id = %s WHERE id = %s",
-        ("Accepted", session["user_id"], ride_id)
+        """
+        UPDATE rides
+        SET status = 'Accepted',
+            driver_id = %s,
+            accepted_at = NOW()
+        WHERE id = %s AND status = 'Pending'
+        """,
+        (session["user_id"], ride_id)
     )
 
     conn.commit()
+    cur.close()
+    conn.close()
+
+    return redirect("/")
+
+
+@app.route("/complete/<int:ride_id>")
+def complete_ride(ride_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("SELECT * FROM rides WHERE id = %s", (ride_id,))
+    ride = cur.fetchone()
+
+    if ride and (
+        ride["rider_id"] == session["user_id"] or
+        ride["driver_id"] == session["user_id"]
+    ):
+        cur.execute(
+            """
+            UPDATE rides
+            SET status = 'Completed',
+                completed_at = NOW()
+            WHERE id = %s
+            """,
+            (ride_id,)
+        )
+        conn.commit()
+
     cur.close()
     conn.close()
 
@@ -216,65 +266,7 @@ def dashboard():
     )
 
 
-@app.route("/cancel/<int:ride_id>")
-def cancel_ride(ride_id):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    cur.execute(
-        "SELECT * FROM rides WHERE id = %s",
-        (ride_id,)
-    )
-
-    ride = cur.fetchone()
-
-    if ride and ride["rider_id"] == session["user_id"]:
-        cur.execute(
-            "DELETE FROM rides WHERE id = %s",
-            (ride_id,)
-        )
-        conn.commit()
-
-    cur.close()
-    conn.close()
-
-    return redirect("/")
-
-
-@app.route("/complete/<int:ride_id>")
-def complete_ride(ride_id):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    cur.execute(
-        "SELECT * FROM rides WHERE id = %s",
-        (ride_id,)
-    )
-
-    ride = cur.fetchone()
-
-    if ride:
-        if ride["rider_id"] == session["user_id"] or ride["driver_id"] == session["user_id"]:
-            cur.execute(
-                "UPDATE rides SET status = %s WHERE id = %s",
-                ("Completed", ride_id)
-            )
-            conn.commit()
-
-    cur.close()
-    conn.close()
-
-    return redirect("/")
-
-
 if __name__ == "__main__":
-    init_db()
     app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", 5000)),
