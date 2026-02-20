@@ -12,7 +12,7 @@ from models.user_model import create_user, get_user_by_email
 
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv("SECRET_KEY") or "dev-permanent-secret-123"
 print("SECRET KEY:", app.secret_key)
 
 
