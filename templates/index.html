@@ -70,31 +70,31 @@
       <div class="ms-auto">
 
         {% if session.user_id %}
-          <span class="text-white me-2">
-            {{ session.username }}
-          </span>
+        <span class="text-white me-2">
+          {{ session.username }}
+        </span>
 
-          {% if session.user_verified %}
-            <span class="badge bg-success me-3">Verified</span>
-          {% endif %}
+        {% if session.user_verified %}
+        <span class="badge bg-success me-3">Verified</span>
+        {% endif %}
 
-          <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">
-            Dashboard
-          </a>
+        <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">
+          Dashboard
+        </a>
 
-          <a href="/logout" class="btn btn-light btn-sm">
-            Logout
-          </a>
+        <a href="/logout" class="btn btn-light btn-sm">
+          Logout
+        </a>
 
         {% else %}
 
-          <a href="/login" class="btn btn-outline-light btn-sm me-2">
-            Login
-          </a>
+        <a href="/login" class="btn btn-outline-light btn-sm me-2">
+          Login
+        </a>
 
-          <a href="/register" class="btn btn-light btn-sm">
-            Register
-          </a>
+        <a href="/register" class="btn btn-light btn-sm">
+          Register
+        </a>
 
         {% endif %}
 
@@ -128,26 +128,26 @@
 
 
   <!-- PLATFORM METRICS -->
-  <section class="py-5 bg-light border-top border-bottom">
+  <section class="py-5 bg-light border-top border-bottom text-dark">
     <div class="container text-center">
       <div class="row">
 
         <div class="col-md-4 mb-4">
-          <h2 class="fw-bold">{{ total_users }}</h2>
+          <h2 class="fw-bold text-dark display-4">{{ total_users }}</h2>
           <p class="text-muted">Verified Students</p>
         </div>
 
         <div class="col-md-4 mb-4">
-          <h2 class="fw-bold">{{ completed_rides }}</h2>
+          <h2 class="fw-bold text-dark display-4">{{ completed_rides }}</h2>
           <p class="text-muted">Rides Completed</p>
         </div>
 
         <div class="col-md-4 mb-4">
-          <h2 class="fw-bold">
+          <h2 class="fw-bold text-dark display-4">
             {% if average_rating %}
-              {{ average_rating }} ★
+            {{ average_rating }} ★
             {% else %}
-              —
+            —
             {% endif %}
           </h2>
           <p class="text-muted">Average Driver Rating</p>
@@ -156,7 +156,6 @@
       </div>
     </div>
   </section>
-
 
   <!-- STATS -->
   <section class="py-5">
@@ -266,4 +265,5 @@
   </footer>
 
 </body>
+
 </html>
