@@ -61,6 +61,48 @@
 
 <body>
 
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <div class="container">
+
+      <a class="navbar-brand fw-bold" href="/">RideLess</a>
+
+      <div class="ms-auto">
+
+        {% if session.user_id %}
+          <span class="text-white me-2">
+            {{ session.username }}
+          </span>
+
+          {% if session.user_verified %}
+            <span class="badge bg-success me-3">Verified</span>
+          {% endif %}
+
+          <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">
+            Dashboard
+          </a>
+
+          <a href="/logout" class="btn btn-light btn-sm">
+            Logout
+          </a>
+
+        {% else %}
+
+          <a href="/login" class="btn btn-outline-light btn-sm me-2">
+            Login
+          </a>
+
+          <a href="/register" class="btn btn-light btn-sm">
+            Register
+          </a>
+
+        {% endif %}
+
+      </div>
+    </div>
+  </nav>
+
+
   <!-- HERO -->
   <section class="hero">
     <div class="container">
@@ -84,6 +126,7 @@
     </div>
   </section>
 
+
   <!-- PLATFORM METRICS -->
   <section class="py-5 bg-light border-top border-bottom">
     <div class="container text-center">
@@ -100,7 +143,13 @@
         </div>
 
         <div class="col-md-4 mb-4">
-          <h2 class="fw-bold">{{ average_rating }} ★</h2>
+          <h2 class="fw-bold">
+            {% if average_rating %}
+              {{ average_rating }} ★
+            {% else %}
+              —
+            {% endif %}
+          </h2>
           <p class="text-muted">Average Driver Rating</p>
         </div>
 
@@ -171,19 +220,6 @@
   </section>
 
 
-  <!-- WHY DIFFERENT -->
-  <section class="py-5">
-    <div class="container text-center">
-      <h2 class="fw-bold mb-4">Why Not Uber?</h2>
-      <p class="lead text-secondary">
-        RideLess flips the model.
-        Instead of algorithmic pricing, students decide the price.
-        No surge. No hidden fees. Pure peer-to-peer rides.
-      </p>
-    </div>
-  </section>
-
-
   <!-- AVAILABLE RIDES -->
   <section class="py-5">
     <div class="container">
@@ -206,7 +242,6 @@
             </p>
             {% endif %}
 
-
             {% if ride.status == "Pending" %}
             <span class="badge bg-warning text-dark">Pending</span>
             {% elif ride.status == "Accepted" %}
@@ -224,11 +259,11 @@
     </div>
   </section>
 
+
   <!-- FOOTER -->
   <footer>
-    Built by kushal • 2026 • MVP Demo
+    Built by Kushal • 2026 • MVP Demo
   </footer>
 
 </body>
-
 </html>
