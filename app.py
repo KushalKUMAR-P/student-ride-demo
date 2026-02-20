@@ -13,7 +13,7 @@ from models.user_model import create_user, get_user_by_email
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY") or "dev-permanent-secret-123"
-print("SECRET KEY:", app.secret_key)
+print("SECRET KEY LOADED:", app.secret_key)
 
 
 # ✅ Initialize DB safely on startup (works for Gunicorn)
@@ -155,6 +155,7 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+        print("FORM DATA:", request.form)
         email = request.form["email"]
         password = request.form["password"]
 
@@ -169,7 +170,6 @@ def login():
             return "Invalid credentials"
 
     return render_template("login.html")
-
 
 @app.route("/logout")
 def logout():
