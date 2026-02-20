@@ -68,10 +68,12 @@ def home():
     elif sort_order == "high":
         order_clause = " ORDER BY rides.budget DESC"
 
+    # Total rides count
     count_query = "SELECT COUNT(*) " + base_query
     cur.execute(count_query, params)
     total_rides = cur.fetchone()["count"]
 
+    # Fetch rides
     final_query = """
         SELECT rides.*,
                rider.username AS rider_name,
@@ -81,7 +83,7 @@ def home():
     cur.execute(final_query, params + [per_page, offset])
     rides = cur.fetchall()
 
-    # ⭐ STEP 4: Add Driver Rating Data
+    # ⭐ Add Driver Rating Data Per Ride
     for ride in rides:
         if ride["driver_id"]:
             cur.execute("""
@@ -98,12 +100,20 @@ def home():
             ride["avg_rating"] = None
             ride["total_ratings"] = 0
 
-    # Metrics
+    # 📊 Platform Metrics
     cur.execute("SELECT COUNT(*) FROM users")
     total_users = cur.fetchone()["count"]
 
     cur.execute("SELECT COUNT(*) FROM rides WHERE status = 'Completed'")
     completed_rides = cur.fetchone()["count"]
+
+    cur.execute("SELECT AVG(rating) AS avg_rating FROM ratings")
+    rating_result = cur.fetchone()
+
+    if rating_result and rating_result["avg_rating"]:
+        average_rating = round(rating_result["avg_rating"], 1)
+    else:
+        average_rating = 0
 
     cur.close()
     conn.close()
@@ -117,7 +127,8 @@ def home():
         page=page,
         total_pages=total_pages,
         total_users=total_users,
-        completed_rides=completed_rides
+        completed_rides=completed_rides,
+        average_rating=average_rating
     )
 
 @app.route("/register", methods=["GET", "POST"])
