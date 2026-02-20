@@ -11,10 +11,24 @@
     body {
       background-color: #0f172a;
       color: #f1f5f9;
+      scroll-behavior: smooth;
     }
 
+    /* NAVBAR */
+    .navbar {
+      transition: all 0.3s ease;
+    }
+
+    .navbar.shrink {
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+      background-color: rgba(2, 6, 23, 0.95) !important;
+      backdrop-filter: blur(6px);
+    }
+
+    /* HERO */
     .hero {
-      padding: 100px 0;
+      padding: 110px 0;
       text-align: center;
       background: linear-gradient(135deg, #0f172a, #1e293b);
     }
@@ -22,36 +36,51 @@
     .btn-primary {
       background-color: #2563eb;
       border: none;
-    }
-
-    .stats-box {
-      background-color: #1e293b;
-      border-radius: 16px;
-      padding: 30px;
-      text-align: center;
       transition: 0.3s;
     }
 
-    .stats-box:hover {
-      transform: translateY(-5px);
-      background-color: #334155;
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-2px);
     }
 
+    /* METRICS */
+    .metrics-section {
+      background-color: #f8fafc;
+      color: #111827;
+    }
+
+    /* CARDS */
+    .stats-box,
     .ride-card {
       background-color: #1e293b;
       border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      transition: 0.3s;
+      padding: 25px;
+      transition: all 0.3s ease;
     }
 
+    .stats-box:hover,
     .ride-card:hover {
+      transform: translateY(-6px);
       background-color: #334155;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+
+    /* Fade animation */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(25px);
+      transition: all 0.8s ease;
+    }
+
+    .fade-up.show {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     footer {
       background-color: #020617;
-      padding: 20px;
+      padding: 25px;
       text-align: center;
       margin-top: 80px;
       color: #94a3b8;
@@ -62,49 +91,32 @@
 <body>
 
   <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 fixed-top">
     <div class="container">
-
       <a class="navbar-brand fw-bold" href="/">RideLess</a>
 
       <div class="ms-auto">
-
         {% if session.user_id %}
-        <span class="text-white me-2">
-          {{ session.username }}
-        </span>
+        <span class="text-white me-2">{{ session.username }}</span>
 
         {% if session.user_verified %}
         <span class="badge bg-success me-3">Verified</span>
         {% endif %}
 
-        <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">
-          Dashboard
-        </a>
-
-        <a href="/logout" class="btn btn-light btn-sm">
-          Logout
-        </a>
-
+        <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+        <a href="/logout" class="btn btn-light btn-sm">Logout</a>
         {% else %}
-
-        <a href="/login" class="btn btn-outline-light btn-sm me-2">
-          Login
-        </a>
-
-        <a href="/register" class="btn btn-light btn-sm">
-          Register
-        </a>
-
+        <a href="/login" class="btn btn-outline-light btn-sm me-2">Login</a>
+        <a href="/register" class="btn btn-light btn-sm">Register</a>
         {% endif %}
-
       </div>
     </div>
   </nav>
 
+  <div style="margin-top:80px;"></div>
 
   <!-- HERO -->
-  <section class="hero">
+  <section class="hero fade-up">
     <div class="container">
       <h1 class="display-4 fw-bold mb-4">
         A Budget-Based Ride Marketplace for Students
@@ -115,40 +127,32 @@
       </p>
 
       {% if session.user_id %}
-      <a href="/create" class="btn btn-primary btn-lg px-4">
-        Post a Ride
-      </a>
+      <a href="/create" class="btn btn-primary btn-lg px-4">Post a Ride</a>
       {% else %}
-      <a href="/register" class="btn btn-primary btn-lg px-4">
-        Get Started
-      </a>
+      <a href="/register" class="btn btn-primary btn-lg px-4">Get Started</a>
       {% endif %}
     </div>
   </section>
 
-
   <!-- PLATFORM METRICS -->
-  <section class="py-5 bg-light border-top border-bottom text-dark">
+  <section class="py-5 border-top border-bottom metrics-section fade-up">
     <div class="container text-center">
       <div class="row justify-content-center">
 
         <div class="col-md-4 mb-4">
-          <h3 class="fw-semibold mb-1">{{ total_users }}</h3>
+          <h3 class="fw-semibold counter" data-target="{{ total_users }}">0</h3>
           <p class="text-muted small mb-0">Verified Students</p>
         </div>
 
         <div class="col-md-4 mb-4">
-          <h3 class="fw-semibold mb-1">{{ completed_rides }}</h3>
+          <h3 class="fw-semibold counter" data-target="{{ completed_rides }}">0</h3>
           <p class="text-muted small mb-0">Rides Completed</p>
         </div>
 
         <div class="col-md-4 mb-4">
-          <h3 class="fw-semibold mb-1">
-            {% if average_rating %}
-            {{ average_rating }} ★
-            {% else %}
-            —
-            {% endif %}
+          <h3 class="fw-semibold counter"
+              data-target="{% if average_rating %}{{ average_rating }}{% else %}0{% endif %}">
+              0
           </h3>
           <p class="text-muted small mb-0">Average Driver Rating</p>
         </div>
@@ -157,82 +161,18 @@
     </div>
   </section>
 
-  <!-- STATS -->
-  <section class="py-5">
-    <div class="container">
-      <div class="row text-center">
-
-        <div class="col-md-4 mb-4">
-          <div class="stats-box">
-            <h2 class="fw-bold">{{ total_users }}</h2>
-            <p>Registered Students</p>
-          </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-          <div class="stats-box">
-            <h2 class="fw-bold">{{ total_rides }}</h2>
-            <p>Active Ride Requests</p>
-          </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-          <div class="stats-box">
-            <h2 class="fw-bold">{{ completed_rides }}</h2>
-            <p>Completed Rides</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-
-  <!-- HOW IT WORKS -->
-  <section class="py-5 bg-dark">
-    <div class="container text-center">
-      <h2 class="mb-5 fw-bold">How RideLess Works</h2>
-
-      <div class="row">
-        <div class="col-md-4 mb-4">
-          <h4>1️⃣ Post Your Ride</h4>
-          <p class="text-secondary">
-            Enter origin, destination, and your budget.
-          </p>
-        </div>
-
-        <div class="col-md-4 mb-4">
-          <h4>2️⃣ Drivers Accept</h4>
-          <p class="text-secondary">
-            Drivers browse and accept rides that fit.
-          </p>
-        </div>
-
-        <div class="col-md-4 mb-4">
-          <h4>3️⃣ Travel & Pay</h4>
-          <p class="text-secondary">
-            Meet up and pay via Zelle or cash.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
   <!-- AVAILABLE RIDES -->
-  <section class="py-5">
+  <section class="py-5 fade-up">
     <div class="container">
       <h2 class="fw-bold text-center mb-5">Available Rides</h2>
 
       {% if rides %}
       <div class="row">
         {% for ride in rides %}
-        <div class="col-md-4">
+        <div class="col-md-4 mb-4">
           <div class="ride-card">
             <h5>{{ ride.origin }} → {{ ride.destination }}</h5>
-            <p class="text-secondary small">
-              Posted by {{ ride.rider_name }}
-            </p>
+            <p class="text-secondary small">Posted by {{ ride.rider_name }}</p>
             <h4 class="fw-bold">${{ ride.budget }}</h4>
 
             {% if ride.avg_rating %}
@@ -258,12 +198,65 @@
     </div>
   </section>
 
-
   <!-- FOOTER -->
   <footer>
     Built by Kushal • 2026 • MVP Demo
   </footer>
 
-</body>
+  <!-- JS ANIMATIONS -->
+  <script>
+    // Counter animation
+    document.addEventListener("DOMContentLoaded", () => {
+      const counters = document.querySelectorAll('.counter');
 
+      counters.forEach(counter => {
+        const target = parseFloat(counter.getAttribute('data-target'));
+        const isDecimal = target % 1 !== 0;
+        let current = 0;
+        const increment = target / 60;
+
+        const updateCounter = () => {
+          current += increment;
+
+          if (current >= target) {
+            counter.innerText = target;
+          } else {
+            counter.innerText = isDecimal
+              ? current.toFixed(1)
+              : Math.floor(current);
+            requestAnimationFrame(updateCounter);
+          }
+        };
+
+        updateCounter();
+      });
+    });
+
+    // Fade-in on scroll
+    const fadeElements = document.querySelectorAll('.fade-up');
+
+    const revealOnScroll = () => {
+      fadeElements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 80) {
+          el.classList.add('show');
+        }
+      });
+    };
+
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll();
+
+    // Navbar shrink
+    window.addEventListener("scroll", function () {
+      const navbar = document.querySelector(".navbar");
+      if (window.scrollY > 50) {
+        navbar.classList.add("shrink");
+      } else {
+        navbar.classList.remove("shrink");
+      }
+    });
+  </script>
+
+</body>
 </html>
