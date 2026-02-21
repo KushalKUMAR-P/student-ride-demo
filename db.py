@@ -1,6 +1,5 @@
 import os
 import psycopg2
-from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -16,14 +15,9 @@ def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 🔥 RESET TABLES (DEV ONLY)
-    cur.execute("DROP TABLE IF EXISTS ratings CASCADE;")
-    cur.execute("DROP TABLE IF EXISTS rides CASCADE;")
-    cur.execute("DROP TABLE IF EXISTS users CASCADE;")
-
     # USERS TABLE
     cur.execute("""
-        CREATE TABLE users (
+        CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             username TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
@@ -35,7 +29,7 @@ def init_db():
 
     # RIDES TABLE
     cur.execute("""
-        CREATE TABLE rides (
+        CREATE TABLE IF NOT EXISTS rides (
             id SERIAL PRIMARY KEY,
             origin TEXT NOT NULL,
             destination TEXT NOT NULL,
@@ -51,7 +45,7 @@ def init_db():
 
     # RATINGS TABLE
     cur.execute("""
-        CREATE TABLE ratings (
+        CREATE TABLE IF NOT EXISTS ratings (
             id SERIAL PRIMARY KEY,
             ride_id INTEGER REFERENCES rides(id) ON DELETE CASCADE,
             rider_id INTEGER REFERENCES users(id),
@@ -64,5 +58,3 @@ def init_db():
     conn.commit()
     cur.close()
     conn.close()
-
-    print("Database initialized successfully.")
