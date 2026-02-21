@@ -171,6 +171,62 @@ def login():
 
     return render_template("login.html")
 
+@app.route("/user/<int:user_id>")
+def user_profile(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Get user info
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
+
+    if not user:
+        cur.close()
+        conn.close()
+        return "User not found"
+
+    # Average rating
+    cur.execute("""
+        SELECT AVG(rating) AS avg_rating, COUNT(*) AS total
+        FROM ratings
+        WHERE driver_id = %s
+    """, (user_id,))
+    rating_data = cur.fetchone()
+
+    avg_rating = round(rating_data["avg_rating"], 1) if rating_data["avg_rating"] else 0
+    total_ratings = rating_data["total"]
+
+    # Completed rides
+    cur.execute("""
+        SELECT COUNT(*) AS total_completed
+        FROM rides
+        WHERE driver_id = %s AND status = 'Completed'
+    """, (user_id,))
+    completed_data = cur.fetchone()
+    total_completed = completed_data["total_completed"]
+
+    # Recent rides
+    cur.execute("""
+        SELECT origin, destination, completed_at
+        FROM rides
+        WHERE driver_id = %s AND status = 'Completed'
+        ORDER BY completed_at DESC
+        LIMIT 5
+    """, (user_id,))
+    recent_rides = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template(
+        "profile.html",
+        user=user,
+        avg_rating=avg_rating,
+        total_ratings=total_ratings,
+        total_completed=total_completed,
+        recent_rides=recent_rides
+    )
+
 @app.route("/logout")
 def logout():
     session.clear()

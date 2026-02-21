@@ -63,7 +63,7 @@
     .ride-card:hover {
       transform: translateY(-6px);
       background-color: #334155;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
     }
 
     /* Fade animation */
@@ -151,8 +151,8 @@
 
         <div class="col-md-4 mb-4">
           <h3 class="fw-semibold counter"
-              data-target="{% if average_rating %}{{ average_rating }}{% else %}0{% endif %}">
-              0
+            data-target="{% if average_rating %}{{ average_rating }}{% else %}0{% endif %}">
+            0
           </h3>
           <p class="text-muted small mb-0">Average Driver Rating</p>
         </div>
@@ -172,7 +172,11 @@
         <div class="col-md-4 mb-4">
           <div class="ride-card">
             <h5>{{ ride.origin }} → {{ ride.destination }}</h5>
-            <p class="text-secondary small">Posted by {{ ride.rider_name }}</p>
+            <p class="text-secondary small">Posted by
+              <a href="/user/{{ ride.rider_id }}" class="text-decoration-none text-info">
+                {{ ride.rider_name }}
+              </a>
+            </p>
             <h4 class="fw-bold">${{ ride.budget }}</h4>
 
             {% if ride.avg_rating %}
@@ -259,4 +263,5 @@
   </script>
 
 </body>
+
 </html>
